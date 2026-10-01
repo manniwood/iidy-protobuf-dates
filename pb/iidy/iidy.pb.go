@@ -7,11 +7,13 @@
 package iidy
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -208,6 +210,8 @@ func (x *GetListItemRequest) GetListItem() *ListItem {
 type GetListItemResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Attempts      int32                  `protobuf:"varint,1,opt,name=attempts,proto3" json:"attempts,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -247,6 +251,20 @@ func (x *GetListItemResponse) GetAttempts() int32 {
 		return x.Attempts
 	}
 	return 0
+}
+
+func (x *GetListItemResponse) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *GetListItemResponse) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
 }
 
 type IncrementListItemRequest struct {
@@ -429,6 +447,8 @@ type ItemAttempt struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Item          string                 `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
 	Attempts      int32                  `protobuf:"varint,2,opt,name=attempts,proto3" json:"attempts,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -475,6 +495,20 @@ func (x *ItemAttempt) GetAttempts() int32 {
 		return x.Attempts
 	}
 	return 0
+}
+
+func (x *ItemAttempt) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *ItemAttempt) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
 }
 
 type AddListItemsRequest struct {
@@ -873,7 +907,7 @@ var File_iidy_iidy_proto protoreflect.FileDescriptor
 
 const file_iidy_iidy_proto_rawDesc = "" +
 	"\n" +
-	"\x0fiidy/iidy.proto\x12\x04iidy\"2\n" +
+	"\x0fiidy/iidy.proto\x12\x04iidy\x1a\x1fgoogle/protobuf/timestamp.proto\"2\n" +
 	"\bListItem\x12\x12\n" +
 	"\x04list\x18\x01 \x01(\tR\x04list\x12\x12\n" +
 	"\x04item\x18\x02 \x01(\tR\x04item\"A\n" +
@@ -882,9 +916,13 @@ const file_iidy_iidy_proto_rawDesc = "" +
 	"\x13AddListItemResponse\x12\x14\n" +
 	"\x05added\x18\x01 \x01(\x03R\x05added\"A\n" +
 	"\x12GetListItemRequest\x12+\n" +
-	"\tlist_item\x18\x01 \x01(\v2\x0e.iidy.ListItemR\blistItem\"1\n" +
+	"\tlist_item\x18\x01 \x01(\v2\x0e.iidy.ListItemR\blistItem\"\xa7\x01\n" +
 	"\x13GetListItemResponse\x12\x1a\n" +
-	"\battempts\x18\x01 \x01(\x05R\battempts\"G\n" +
+	"\battempts\x18\x01 \x01(\x05R\battempts\x129\n" +
+	"\n" +
+	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"G\n" +
 	"\x18IncrementListItemRequest\x12+\n" +
 	"\tlist_item\x18\x01 \x01(\v2\x0e.iidy.ListItemR\blistItem\"=\n" +
 	"\x19IncrementListItemResponse\x12 \n" +
@@ -892,10 +930,14 @@ const file_iidy_iidy_proto_rawDesc = "" +
 	"\x15DeleteListItemRequest\x12+\n" +
 	"\tlist_item\x18\x01 \x01(\v2\x0e.iidy.ListItemR\blistItem\"2\n" +
 	"\x16DeleteListItemResponse\x12\x18\n" +
-	"\adeleted\x18\x01 \x01(\x03R\adeleted\"=\n" +
+	"\adeleted\x18\x01 \x01(\x03R\adeleted\"\xb3\x01\n" +
 	"\vItemAttempt\x12\x12\n" +
 	"\x04item\x18\x01 \x01(\tR\x04item\x12\x1a\n" +
-	"\battempts\x18\x02 \x01(\x05R\battempts\"?\n" +
+	"\battempts\x18\x02 \x01(\x05R\battempts\x129\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"?\n" +
 	"\x13AddListItemsRequest\x12\x12\n" +
 	"\x04list\x18\x01 \x01(\tR\x04list\x12\x14\n" +
 	"\x05items\x18\x02 \x03(\tR\x05items\",\n" +
@@ -960,34 +1002,39 @@ var file_iidy_iidy_proto_goTypes = []any{
 	(*IncrementListItemsResponse)(nil), // 15: iidy.IncrementListItemsResponse
 	(*DeleteListItemsRequest)(nil),     // 16: iidy.DeleteListItemsRequest
 	(*DeleteListItemsResponse)(nil),    // 17: iidy.DeleteListItemsResponse
+	(*timestamppb.Timestamp)(nil),      // 18: google.protobuf.Timestamp
 }
 var file_iidy_iidy_proto_depIdxs = []int32{
 	0,  // 0: iidy.AddListItemRequest.list_item:type_name -> iidy.ListItem
 	0,  // 1: iidy.GetListItemRequest.list_item:type_name -> iidy.ListItem
-	0,  // 2: iidy.IncrementListItemRequest.list_item:type_name -> iidy.ListItem
-	0,  // 3: iidy.DeleteListItemRequest.list_item:type_name -> iidy.ListItem
-	9,  // 4: iidy.GetListItemsResponse.items:type_name -> iidy.ItemAttempt
-	1,  // 5: iidy.IIDYService.AddListItem:input_type -> iidy.AddListItemRequest
-	3,  // 6: iidy.IIDYService.GetListItem:input_type -> iidy.GetListItemRequest
-	5,  // 7: iidy.IIDYService.IncrementListItem:input_type -> iidy.IncrementListItemRequest
-	7,  // 8: iidy.IIDYService.DeleteListItem:input_type -> iidy.DeleteListItemRequest
-	10, // 9: iidy.IIDYService.AddListItems:input_type -> iidy.AddListItemsRequest
-	12, // 10: iidy.IIDYService.GetListItems:input_type -> iidy.GetListItemsRequest
-	14, // 11: iidy.IIDYService.IncrementListItems:input_type -> iidy.IncrementListItemsRequest
-	16, // 12: iidy.IIDYService.DeleteListItems:input_type -> iidy.DeleteListItemsRequest
-	2,  // 13: iidy.IIDYService.AddListItem:output_type -> iidy.AddListItemResponse
-	4,  // 14: iidy.IIDYService.GetListItem:output_type -> iidy.GetListItemResponse
-	6,  // 15: iidy.IIDYService.IncrementListItem:output_type -> iidy.IncrementListItemResponse
-	8,  // 16: iidy.IIDYService.DeleteListItem:output_type -> iidy.DeleteListItemResponse
-	11, // 17: iidy.IIDYService.AddListItems:output_type -> iidy.AddListItemsResponse
-	13, // 18: iidy.IIDYService.GetListItems:output_type -> iidy.GetListItemsResponse
-	15, // 19: iidy.IIDYService.IncrementListItems:output_type -> iidy.IncrementListItemsResponse
-	17, // 20: iidy.IIDYService.DeleteListItems:output_type -> iidy.DeleteListItemsResponse
-	13, // [13:21] is the sub-list for method output_type
-	5,  // [5:13] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	18, // 2: iidy.GetListItemResponse.created_at:type_name -> google.protobuf.Timestamp
+	18, // 3: iidy.GetListItemResponse.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 4: iidy.IncrementListItemRequest.list_item:type_name -> iidy.ListItem
+	0,  // 5: iidy.DeleteListItemRequest.list_item:type_name -> iidy.ListItem
+	18, // 6: iidy.ItemAttempt.created_at:type_name -> google.protobuf.Timestamp
+	18, // 7: iidy.ItemAttempt.updated_at:type_name -> google.protobuf.Timestamp
+	9,  // 8: iidy.GetListItemsResponse.items:type_name -> iidy.ItemAttempt
+	1,  // 9: iidy.IIDYService.AddListItem:input_type -> iidy.AddListItemRequest
+	3,  // 10: iidy.IIDYService.GetListItem:input_type -> iidy.GetListItemRequest
+	5,  // 11: iidy.IIDYService.IncrementListItem:input_type -> iidy.IncrementListItemRequest
+	7,  // 12: iidy.IIDYService.DeleteListItem:input_type -> iidy.DeleteListItemRequest
+	10, // 13: iidy.IIDYService.AddListItems:input_type -> iidy.AddListItemsRequest
+	12, // 14: iidy.IIDYService.GetListItems:input_type -> iidy.GetListItemsRequest
+	14, // 15: iidy.IIDYService.IncrementListItems:input_type -> iidy.IncrementListItemsRequest
+	16, // 16: iidy.IIDYService.DeleteListItems:input_type -> iidy.DeleteListItemsRequest
+	2,  // 17: iidy.IIDYService.AddListItem:output_type -> iidy.AddListItemResponse
+	4,  // 18: iidy.IIDYService.GetListItem:output_type -> iidy.GetListItemResponse
+	6,  // 19: iidy.IIDYService.IncrementListItem:output_type -> iidy.IncrementListItemResponse
+	8,  // 20: iidy.IIDYService.DeleteListItem:output_type -> iidy.DeleteListItemResponse
+	11, // 21: iidy.IIDYService.AddListItems:output_type -> iidy.AddListItemsResponse
+	13, // 22: iidy.IIDYService.GetListItems:output_type -> iidy.GetListItemsResponse
+	15, // 23: iidy.IIDYService.IncrementListItems:output_type -> iidy.IncrementListItemsResponse
+	17, // 24: iidy.IIDYService.DeleteListItems:output_type -> iidy.DeleteListItemsResponse
+	17, // [17:25] is the sub-list for method output_type
+	9,  // [9:17] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_iidy_iidy_proto_init() }

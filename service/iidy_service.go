@@ -57,7 +57,7 @@ func (s *IIDYService) GetListItem(ctx context.Context, req *pb.GetListItemReques
 	if item == "" {
 		return nil, status.Error(codes.InvalidArgument, "Must provide a List item")
 	}
-	attempts, ok, err := data.GetOne(ctx, data.PgxPool, list, item)
+	resp, ok, err := data.GetOne(ctx, data.PgxPool, list, item)
 	if err != nil {
 		log.Printf("GetListItem %v: %v", req, err)
 		return nil, status.Error(codes.Internal, "Problem trying to get list item")
@@ -65,9 +65,7 @@ func (s *IIDYService) GetListItem(ctx context.Context, req *pb.GetListItemReques
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "Item %v from list %v not found", item, list)
 	}
-	return &pb.GetListItemResponse{
-		Attempts: attempts,
-	}, nil
+	return resp, nil
 }
 
 func (s *IIDYService) IncrementListItem(ctx context.Context, req *pb.IncrementListItemRequest) (*pb.IncrementListItemResponse, error) {

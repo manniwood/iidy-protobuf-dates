@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/tern/v2/migrate"
 	pb "github.com/manniwood/iidy-protobuf-dates/pb/iidy"
+	"github.com/manniwood/pgx-protobuf-timestamp/v2/pgxpbts"
 	"github.com/manniwood/pgxtras"
 )
 
@@ -74,6 +75,14 @@ func CreatePGXPool(ctx context.Context, dbURL string) (*pgxpool.Pool, error) {
 	connConfig, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("problem parsing pool db URL %s: %w", dbURL, err)
+	}
+
+	// Add support for deserializing straight from Postgres timestamp to
+	// protobuf timestamps.
+	connConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		pgxpbts.Register(conn.TypeMap())
+		pgxpbts.RegisterTZ(conn.TypeMap())
+		return nil
 	}
 
 	// Identify app pool connections as "iidy" in pg_stat_activity
@@ -140,33 +149,37 @@ func InsertOne(ctx context.Context, e Execer, list string, item string) (int64, 
 // in a list. When a list or list item is missing, the number of attempts
 // will be returned as 0, but the second return argument (commonly assiged
 // to "ok") will be false.
-func GetOne(ctx context.Context, q Querier, list string, item string) (int32, bool, error) {
-	var attempts int32
+func GetOne(ctx context.Context, q Querier, list string, item string) (*pb.GetListItemResponse, bool, error) {
+	var resp *pb.GetListItemResponse
 	rowFetcher, err := q.Query(ctx, `
-		select attempts
+		select attempts,
+		       created_at,
+		       updated_at
 		  from iidy.lists
 		 where list = @list 
 		 and item = @item`, pgx.NamedArgs{"list": list, "item": item})
 	if err != nil {
-		return 0, false, err
+		return nil, false, err
 	}
-	attempts, ok, err := pgxtras.CollectOneRowOK(rowFetcher, pgx.RowTo[int32])
+	resp, ok, err := pgxtras.CollectOneRowOK(rowFetcher, pgx.RowToAddrOfStructByName[pb.GetListItemResponse])
 	if err != nil {
-		return 0, false, err
+		return nil, false, err
 	}
 	if !ok {
-		return 0, false, nil
+		return nil, false, nil
 	}
-	return attempts, true, nil
+	return resp, true, nil
 }
 
 // DeleteOne deletes an item from a list. The first return value is the number of
 // items that were successfully deleted (1 or 0).
 func DeleteOne(ctx context.Context, e Execer, list string, item string) (int64, error) {
+	// IMPORTANT: use localtimestamp for deleted_at so that the server
+	// time zone is used; server time zone SHOULD be set to UTC
 	commandTag, err := e.Exec(ctx, `
 		delete from iidy.lists
-		 where list = @list
-		 and item = @item`, pgx.NamedArgs{"list": list, "item": item})
+		      where list = @list
+		        and item = @item`, pgx.NamedArgs{"list": list, "item": item})
 	return commandTag.RowsAffected(), err
 }
 
@@ -176,7 +189,8 @@ func DeleteOne(ctx context.Context, e Execer, list string, item string) (int64, 
 func IncrementOne(ctx context.Context, e Execer, list string, item string) (int64, error) {
 	commandTag, err := e.Exec(ctx, `
 		update iidy.lists
-		   set attempts = attempts + 1
+		   set attempts = attempts + 1,
+		       updated_at = default
 		 where list = @list
 		 and item = @item`, pgx.NamedArgs{"list": list, "item": item})
 	if err != nil {
@@ -203,7 +217,9 @@ func InsertBatch(ctx context.Context, cf CopyFromer, list string, items []string
 var getBatchSQLTemplate = func() *template.Template {
 	sqlTemplate := `
       select item,
-             attempts
+             attempts,
+             created_at,
+             updated_at
         from iidy.lists
        where list = @list
 {{if .startID}}
@@ -259,18 +275,13 @@ func DeleteBatch(ctx context.Context, e Execer, list string, items []string) (in
 	// We could have done `and item = any($2)` but see
 	// https://www.manniwood.com/2016_02_01/arrays_and_the_postgresql_query_planner.html
 	// for why unnesting the array into a table makes the query planner happier.
+	// IMPORTANT: use localtimestamp for deleted_at so that the server
+	// time zone is used; server time zone SHOULD be set to UTC
 	sql := `
     delete from iidy.lists
           where list = @list
             and item in (select unnest(@items::text[]))`
 	commandTag, err := e.Exec(ctx, sql, pgx.NamedArgs{"list": list, "items": items})
-	/*
-			sql := `
-		    delete from iidy.lists
-		          where list = $1
-		            and item in (select unnest($2::text[]))`
-			commandTag, err := e.Exec(ctx, sql, list, items)
-	*/
 	return commandTag.RowsAffected(), err
 }
 
@@ -291,7 +302,8 @@ func IncrementBatch(ctx context.Context, e Execer, list string, items []string) 
 	// for why unnesting the array into a table makes the query planner happier.
 	sql := `
     update iidy.lists
-       set attempts = attempts + 1
+       set attempts = attempts + 1,
+           updated_at = default
      where list = @list
        and item in (select unnest(@items::text[]))`
 	commandTag, err := e.Exec(ctx, sql, pgx.NamedArgs{"list": list, "items": items})

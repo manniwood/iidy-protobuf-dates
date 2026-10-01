@@ -47,6 +47,27 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func itemAttemptSliceEqual(a, b []*pb.ItemAttempt) bool {
+	if a == nil && b != nil {
+		return false
+	}
+	if a != nil && b == nil {
+		return false
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	for i := len(a); i < len(a); i++ {
+		if a[i].Item != b[i].Item {
+			return false
+		}
+		if a[i].Attempts != b[i].Attempts {
+			return false
+		}
+	}
+	return true
+}
+
 // This is the only PUBLIC function that a run of
 // `go test ./...` will find. All sub tests
 // are run serially, in a controlled manner. However,
@@ -104,15 +125,18 @@ func testDataFunctions(t *testing.T) {
 	})
 
 	t.Run("GetOne", func(t *testing.T) {
-		attempts, ok, err := data.GetOne(context.Background(), pool, "downloads", "kernel.tar.gz")
+		resp, ok, err := data.GetOne(context.Background(), pool, "downloads", "kernel.tar.gz")
 		if err != nil {
 			t.Errorf("Error getting item: %v", err)
 		}
-		if attempts != 0 {
-			t.Error("attempts != 0")
-		}
 		if !ok {
 			t.Error("Did not properly add item to list.")
+		}
+		if resp.Attempts != 0 {
+			t.Error("attempts != 0")
+		}
+		if !reflect.DeepEqual(resp.CreatedAt, resp.UpdatedAt) {
+			t.Error("created_at and updated_at should equal each other")
 		}
 	})
 
@@ -197,15 +221,18 @@ func testDataFunctions(t *testing.T) {
 	})
 
 	t.Run("GetOne that has been incremented", func(t *testing.T) {
-		attempts, ok, err := data.GetOne(context.Background(), pool, "downloads", "kernel.tar.gz")
+		resp, ok, err := data.GetOne(context.Background(), pool, "downloads", "kernel.tar.gz")
 		if err != nil {
 			t.Errorf("Error getting item: %v", err)
 		}
 		if !ok {
 			t.Error("Did not properly add item to list.")
 		}
-		if attempts != 1 {
+		if resp.Attempts != 1 {
 			t.Error("Did not properly increment item in list.")
+		}
+		if reflect.DeepEqual(resp.CreatedAt, resp.UpdatedAt) {
+			t.Error("created_at and updated_at should NOT equal each other after incrementation")
 		}
 	})
 
@@ -252,15 +279,18 @@ func testDataFunctions(t *testing.T) {
 
 		// If we get the list items, do they exist?
 		for _, file := range testFiles {
-			attempts, ok, err := data.GetOne(context.Background(), pool, "downloads", file)
+			resp, ok, err := data.GetOne(context.Background(), pool, "downloads", file)
 			if err != nil {
 				t.Errorf("Error getting item: %v", err)
 			}
-			if attempts != 0 {
-				t.Errorf("Attempts for freshly-created %v is not 0", file)
-			}
 			if !ok {
 				t.Error("Did not properly add item to list.")
+			}
+			if resp.Attempts != 0 {
+				t.Errorf("Attempts for freshly-created %v is not 0", file)
+			}
+			if !reflect.DeepEqual(resp.CreatedAt, resp.UpdatedAt) {
+				t.Error("created_at and updated_at should equal each other")
 			}
 		}
 	})
@@ -318,14 +348,14 @@ func testDataFunctions(t *testing.T) {
 
 		// Were other items left alone?
 		for _, file := range []string{"f", "g"} {
-			attempts, ok, err := data.GetOne(context.Background(), pool, "downloads", file)
+			resp, ok, err := data.GetOne(context.Background(), pool, "downloads", file)
 			if err != nil {
 				t.Errorf("Error getting item: %v", err)
 			}
 			if !ok {
 				t.Errorf("Item %v should not have been deleted from list.", file)
 			}
-			if attempts != 0 {
+			if resp.Attempts != 0 {
 				t.Errorf("Item %v is incorrectly incremented.", file)
 			}
 		}
@@ -367,7 +397,7 @@ func testDataFunctions(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error batch fetching: %v", err)
 			}
-			if !reflect.DeepEqual(test.want, items) {
+			if !itemAttemptSliceEqual(test.want, items) {
 				t.Errorf("Expected %v; got %v", test.want, items)
 			}
 		}
@@ -413,28 +443,28 @@ func testDataFunctions(t *testing.T) {
 
 		// If we look for incremented items, are they incremented?
 		for _, file := range []string{"a", "b", "c", "d", "e"} {
-			attempts, ok, err := data.GetOne(context.Background(), pool, "downloads", file)
+			resp, ok, err := data.GetOne(context.Background(), pool, "downloads", file)
 			if err != nil {
 				t.Errorf("Error getting item: %v", err)
 			}
 			if !ok {
 				t.Errorf("Did not properly get item %v from list.", file)
 			}
-			if attempts != 1 {
+			if resp.Attempts != 1 {
 				t.Errorf("Did not properly increment item %v.", file)
 			}
 		}
 
 		// What about non-incremented items? Were they left alone?
 		for _, file := range []string{"f", "g"} {
-			attempts, ok, err := data.GetOne(context.Background(), pool, "downloads", file)
+			resp, ok, err := data.GetOne(context.Background(), pool, "downloads", file)
 			if err != nil {
 				t.Errorf("Error getting item: %v", err)
 			}
 			if !ok {
 				t.Errorf("Did not properly get item %v from list.", file)
 			}
-			if attempts != 0 {
+			if resp.Attempts != 0 {
 				t.Errorf("Item %v is incorrectly incremented.", file)
 			}
 		}
@@ -978,7 +1008,7 @@ func testServer(t *testing.T) {
 				t.Errorf("Error getting items: %v", err)
 			}
 
-			if !reflect.DeepEqual(resp.GetItems(), test.want) {
+			if !itemAttemptSliceEqual(resp.GetItems(), test.want) {
 				t.Errorf("fetched items where supposed to be %v but were %v instead", test.want, resp.GetItems())
 			}
 		}
