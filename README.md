@@ -11,8 +11,9 @@ feel free to beg/borrow/steal anything that you like from here.
 
 ## Summary
 
-IIDY-proto is a fork of my [iidy](https://github.com/manniwood/iidy) project
-where instead of having an http/text/json API, it uses protobuf and gRPC instead.
+IIDY-proto is a fork of my [iidy-protobuf](https://github.com/manniwood/iidy-protobuf) project
+where I add `created_at`, `updated_at` and `deleted_at` fields to the database, to play with
+certain date handling ideas that I don't want to forget.
 
 ## The Journey
 
