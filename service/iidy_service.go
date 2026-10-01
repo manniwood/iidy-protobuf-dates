@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/manniwood/iidy-protobuf/data"
-	pb "github.com/manniwood/iidy-protobuf/pb/iidy"
+	"github.com/manniwood/iidy-protobuf-dates/data"
+	pb "github.com/manniwood/iidy-protobuf-dates/pb/iidy"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -23,7 +23,7 @@ func NewIIDYService(pool *pgxpool.Pool) *IIDYService {
 	}
 }
 
-func (s *IIDYService) AddListItem (ctx context.Context, req *pb.AddListItemRequest) (*pb.AddListItemResponse, error) {
+func (s *IIDYService) AddListItem(ctx context.Context, req *pb.AddListItemRequest) (*pb.AddListItemResponse, error) {
 	if req.GetListItem() == nil {
 		return nil, status.Error(codes.InvalidArgument, "Must provide a List")
 	}
@@ -114,7 +114,7 @@ func (s *IIDYService) DeleteListItem(ctx context.Context, req *pb.DeleteListItem
 	}, nil
 }
 
-func (s *IIDYService) AddListItems (ctx context.Context, req *pb.AddListItemsRequest) (*pb.AddListItemsResponse, error) {
+func (s *IIDYService) AddListItems(ctx context.Context, req *pb.AddListItemsRequest) (*pb.AddListItemsResponse, error) {
 	list := req.GetList()
 	if list == "" {
 		return nil, status.Error(codes.InvalidArgument, "Must provide a List name")
