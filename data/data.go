@@ -28,6 +28,7 @@ import (
 const DefaultPgPoolURL string = "postgresql://postgres:postgres@localhost:5432/postgres?pool_max_conns=5"
 const DefaultPgMigrationURL string = "postgresql://postgres:postgres@localhost:5432/postgres"
 const TernMigrationTable string = "public.iidy_schema_version"
+const DefaultMinIdleConns string = "3"
 
 // PgxPool holds a pgx pool that will be assigned at application startup.
 var PgxPool *pgxpool.Pool
@@ -71,7 +72,7 @@ func (cp *itemCopier) Err() error {
 	return nil
 }
 
-func CreatePGXPool(ctx context.Context, dbURL string) (*pgxpool.Pool, error) {
+func CreatePGXPool(ctx context.Context, dbURL string, applicationName string, minIdleConns int) (*pgxpool.Pool, error) {
 	connConfig, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("problem parsing pool db URL %s: %w", dbURL, err)
@@ -85,8 +86,13 @@ func CreatePGXPool(ctx context.Context, dbURL string) (*pgxpool.Pool, error) {
 		return nil
 	}
 
+	// Make some idle connections so that tests can check for application_name.
+	// Also, it's generally good to have at least a few idle connections ready
+	// anyway, for latency reasons.
+	connConfig.MinIdleConns = int32(minIdleConns)
+
 	// Identify app pool connections as "iidy" in pg_stat_activity
-	connConfig.ConnConfig.RuntimeParams["application_name"] = "iidy"
+	connConfig.ConnConfig.RuntimeParams["application_name"] = applicationName
 
 	conn, err := pgxpool.NewWithConfig(ctx, connConfig)
 	if err != nil {
@@ -95,14 +101,14 @@ func CreatePGXPool(ctx context.Context, dbURL string) (*pgxpool.Pool, error) {
 	return conn, nil
 }
 
-func CreatePGXConnForMigration(ctx context.Context, dbURL string) (*pgx.Conn, error) {
+func CreatePGXConnForMigration(ctx context.Context, dbURL string, appTernName string) (*pgx.Conn, error) {
 	connConfig, err := pgx.ParseConfig(dbURL)
 	if err != nil {
 		return nil, fmt.Errorf("problem parsing migration db URL %s: %w", dbURL, err)
 	}
 
-	// Identify migration connection as "iidy_migration" in pg_stat_activity
-	connConfig.RuntimeParams["application_name"] = "iidy_migration"
+	// Identify migration connection in pg_stat_activity
+	connConfig.RuntimeParams["application_name"] = appTernName
 
 	conn, err := pgx.ConnectConfig(ctx, connConfig)
 	if err != nil {

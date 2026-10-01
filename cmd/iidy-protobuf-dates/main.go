@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -69,7 +70,16 @@ func main() {
 		migrationURL = data.DefaultPgMigrationURL
 	}
 
-	migrationConn, err := data.CreatePGXConnForMigration(ctx, migrationURL)
+	minIdleConnsStr := os.Getenv("IIDY_PG_MIN_IDLE_CONNS")
+	if minIdleConnsStr == "" {
+		minIdleConnsStr = data.DefaultMinIdleConns
+	}
+	minIdleConns, err := strconv.Atoi(minIdleConnsStr)
+	if err != nil {
+		log.Fatalf(`IIDY_PG_MIN_IDLE_CONNS "%s" is not an integer`, minIdleConnsStr)
+	}
+
+	migrationConn, err := data.CreatePGXConnForMigration(ctx, migrationURL, service.ApplicationTernName)
 	if err != nil {
 		log.Fatalf("Could not create connection for migration: %v\n", err)
 	}
@@ -81,7 +91,7 @@ func main() {
 	// Don't need this single connection anymore, so close it.
 	migrationConn.Close(ctx)
 
-	data.PgxPool, err = data.CreatePGXPool(ctx, poolURL)
+	data.PgxPool, err = data.CreatePGXPool(ctx, poolURL, service.ApplicationName, minIdleConns)
 	if err != nil {
 		log.Fatalf("Could not create connection pool: %v\n", err)
 	}

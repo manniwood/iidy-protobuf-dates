@@ -11,6 +11,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const ApplicationTernName string = "IIDY_with_dates_Tern"
+const ApplicationName string = "IIDY_with_dates"
+
 type IIDYService struct {
 	pb.UnimplementedIIDYServiceServer
 

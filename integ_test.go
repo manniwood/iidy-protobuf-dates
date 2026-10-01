@@ -41,6 +41,7 @@ import (
 	"github.com/manniwood/iidy-protobuf-dates/data"
 	"github.com/manniwood/iidy-protobuf-dates/migrations"
 	pb "github.com/manniwood/iidy-protobuf-dates/pb/iidy"
+	"github.com/manniwood/iidy-protobuf-dates/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -89,7 +90,7 @@ func testDataFunctions(t *testing.T) {
 
 	ctx := context.Background()
 
-	migrateConn, err := data.CreatePGXConnForMigration(ctx, dbURL)
+	migrateConn, err := data.CreatePGXConnForMigration(ctx, dbURL, service.ApplicationTernName)
 	if err != nil {
 		t.Fatalf("Could not create pgx conn for migration: %v", err)
 	}
@@ -105,7 +106,7 @@ func testDataFunctions(t *testing.T) {
 		t.Fatalf("Could not migrate db: %v", err)
 	}
 
-	pool, err := data.CreatePGXPool(ctx, dbURL)
+	pool, err := data.CreatePGXPool(ctx, dbURL, service.ApplicationName, 3)
 	if err != nil {
 		t.Fatalf("Could not create pgx pool for integ tests: %v", err)
 	}
@@ -113,6 +114,23 @@ func testDataFunctions(t *testing.T) {
 
 	// Run these tests serially so that we always know
 	// the state of the db.
+
+	t.Run("ApplicationName", func(t *testing.T) {
+		rowFetcher, err := pool.Query(ctx, `
+		select count(*)
+		  from pg_stat_activity
+		 where application_name = @application_name`, pgx.NamedArgs{"application_name": service.ApplicationName})
+		if err != nil {
+			t.Errorf("Error checking for connections with application name: %v", err)
+		}
+		count, err := pgx.CollectOneRow(rowFetcher, pgx.RowTo[int])
+		if err != nil {
+			t.Errorf("Error collecting rows: %v", err)
+		}
+		if count < 1 {
+			t.Errorf(`No connections found with application_name = "%s"`, service.ApplicationName)
+		}
+	})
 
 	t.Run("InsertOne", func(t *testing.T) {
 		count, err := data.InsertOne(context.Background(), pool, "downloads", "kernel.tar.gz")
@@ -528,7 +546,7 @@ func testServer(t *testing.T) {
 
 	ctx := context.Background()
 
-	migrateConn, err := data.CreatePGXConnForMigration(ctx, dbURL)
+	migrateConn, err := data.CreatePGXConnForMigration(ctx, dbURL, service.ApplicationTernName)
 	if err != nil {
 		t.Fatalf("Could not create pgx conn for migration: %v", err)
 	}
@@ -546,6 +564,23 @@ func testServer(t *testing.T) {
 
 	// Run these tests serially so that we always know
 	// the state of the db behind the service.
+
+	t.Run("ApplicationName", func(t *testing.T) {
+		rowFetcher, err := migrateConn.Query(ctx, `
+		select count(*)
+		  from pg_stat_activity
+		 where application_name = @application_name`, pgx.NamedArgs{"application_name": service.ApplicationName})
+		if err != nil {
+			t.Errorf("Error checking for connections with application name: %v", err)
+		}
+		count, err := pgx.CollectOneRow(rowFetcher, pgx.RowTo[int])
+		if err != nil {
+			t.Errorf("Error collecting rows: %v", err)
+		}
+		if count < 1 {
+			t.Errorf(`No connections found with application_name = "%s"`, service.ApplicationName)
+		}
+	})
 
 	t.Run("InsertOne", func(t *testing.T) {
 		req := &pb.AddListItemRequest{
