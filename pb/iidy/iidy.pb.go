@@ -7,12 +7,11 @@
 package iidy
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -927,7 +926,7 @@ const file_iidy_iidy_proto_rawDesc = "" +
 	"\fAddListItems\x12\x19.iidy.AddListItemsRequest\x1a\x1a.iidy.AddListItemsResponse\x12E\n" +
 	"\fGetListItems\x12\x19.iidy.GetListItemsRequest\x1a\x1a.iidy.GetListItemsResponse\x12W\n" +
 	"\x12IncrementListItems\x12\x1f.iidy.IncrementListItemsRequest\x1a .iidy.IncrementListItemsResponse\x12N\n" +
-	"\x0fDeleteListItems\x12\x1c.iidy.DeleteListItemsRequest\x1a\x1d.iidy.DeleteListItemsResponseB,Z*github.com/manniwood/iidy-protobuf/pb/iidyb\x06proto3"
+	"\x0fDeleteListItems\x12\x1c.iidy.DeleteListItemsRequest\x1a\x1d.iidy.DeleteListItemsResponseB2Z0github.com/manniwood/iidy-protobuf-dates/pb/iidyb\x06proto3"
 
 var (
 	file_iidy_iidy_proto_rawDescOnce sync.Once
