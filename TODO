@@ -1,0 +1,14 @@
+3. consider text/template for pg fetcher query building
+
+4. use the get-only-so-much body reader to prevent DOS
+
+5. add conf to binary so different port can be used on startup
+
+HEAD /v1/lists/<listname>
+ return 200 if list exists
+HEAD /v1/lists/<listname>/<itemname>
+ return 200 if list item exists
+
+Future:
+- do a Redis impl
+

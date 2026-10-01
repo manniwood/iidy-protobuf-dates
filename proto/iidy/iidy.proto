@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package iidy;
+
+option go_package = "github.com/manniwood/iidy-protobuf-dates/pb/iidy";
+
+// single
+
+message ListItem {
+  string list = 1;
+  string item = 2;
+}
+
+message AddListItemRequest {
+  ListItem list_item = 1;
+}
+
+message AddListItemResponse {
+  int64 added = 1;
+}
+
+message GetListItemRequest {
+  ListItem list_item = 1;
+}
+
+message GetListItemResponse {
+  int32 attempts = 1;
+}
+
+message IncrementListItemRequest {
+  ListItem list_item = 1;
+}
+
+message IncrementListItemResponse {
+  int64 incremented = 1;
+}
+
+message DeleteListItemRequest {
+  ListItem list_item = 1;
+}
+
+message DeleteListItemResponse {
+  int64 deleted = 1;
+}
+
+// batch
+
+message ItemAttempt {
+  string item = 1;
+  int32 attempts = 2;
+}
+
+message AddListItemsRequest {
+  string list = 1;
+  repeated string items = 2;
+}
+
+message AddListItemsResponse {
+  int64 added = 1;
+}
+
+message GetListItemsRequest {
+  string list = 1;
+  int32 amount = 2;
+  string after_item = 3;
+}
+
+message GetListItemsResponse {
+  repeated ItemAttempt items = 1;
+}
+
+message IncrementListItemsRequest {
+  string list = 1;
+  repeated string items = 2;
+}
+
+message IncrementListItemsResponse {
+  int64 incremented = 1;
+}
+
+message DeleteListItemsRequest {
+  string list = 1;
+  repeated string items = 2;
+}
+
+message DeleteListItemsResponse {
+  int64 deleted = 1;
+}
+
+// Service
+
+service IIDYService {
+  rpc AddListItem (AddListItemRequest) returns (AddListItemResponse);
+  rpc GetListItem (GetListItemRequest) returns (GetListItemResponse);
+  rpc IncrementListItem (IncrementListItemRequest) returns (IncrementListItemResponse);
+  rpc DeleteListItem (DeleteListItemRequest) returns (DeleteListItemResponse);
+
+  rpc AddListItems (AddListItemsRequest) returns (AddListItemsResponse);
+  rpc GetListItems (GetListItemsRequest) returns (GetListItemsResponse);
+  rpc IncrementListItems (IncrementListItemsRequest) returns (IncrementListItemsResponse);
+  rpc DeleteListItems (DeleteListItemsRequest) returns (DeleteListItemsResponse);
+}

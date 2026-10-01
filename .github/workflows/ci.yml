@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  test:
+    name: Test
+    runs-on: ubuntu-26.04
+
+    strategy:
+      matrix:
+        go-version: [1.27]
+        pg-version: [16, 17, 18]
+        include:
+          - pg-version: 16
+          - pg-version: 17
+          - pg-version: 18
+
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v4
+
+    - name: Setup database server for testing
+      run: ci/setup_test.bash
+      env:
+        PGVERSION: ${{ matrix.pg-version }}
+
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v3
+      with:
+        version: "36.x"
+
+    - name: Install Go protobuf stuff
+      run: go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+    - name: Install Go gRPC stuff
+      run: go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+    - name: Build iidy-protobuf-dates
+      run: go build -v -o iidy-protobuf-dates ./cmd/iidy-protobuf-dates
+
+    - name: Run iidy-protobuf-dates
+      id: iidyserver
+      run: ./iidy-protobuf
+      background: true
+
+    - name: Test
+      env:
+        INTEGTEST_DESTROY_DB_URL: "postgres://postgres:postgres@localhost:5432/postgres"
+        INTEGTEST_DESTROY_DB_I_MEAN_IT: "true"
+        INTEGTEST_SERVER: "true"
+
+      run: go test -race ./...
+
+    - name: Stop iidy-protobuf-dates
+      cancel: iidyserver
