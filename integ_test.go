@@ -38,9 +38,9 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/manniwood/iidy-protobuf/data"
-	"github.com/manniwood/iidy-protobuf/migrations"
-	pb "github.com/manniwood/iidy-protobuf/pb/iidy"
+	"github.com/manniwood/iidy-protobuf-dates/data"
+	"github.com/manniwood/iidy-protobuf-dates/migrations"
+	pb "github.com/manniwood/iidy-protobuf-dates/pb/iidy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -472,19 +472,18 @@ func testServer(t *testing.T) {
 		port = defaultPort
 	}
 
-	    // Create a gRPC client channel. RPCs will connect lazily when invoked.
-    conn, err := grpc.NewClient(
-        "localhost:"+port,
-        grpc.WithTransportCredentials(insecure.NewCredentials()),
-    )
-    if err != nil {
-        log.Fatalf("Failed to create grpc client: %v", err)
-    }
-    defer conn.Close()
+	// Create a gRPC client channel. RPCs will connect lazily when invoked.
+	conn, err := grpc.NewClient(
+		"localhost:"+port,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatalf("Failed to create grpc client: %v", err)
+	}
+	defer conn.Close()
 
-		
-    // Create a client stub
-    client := pb.NewIIDYServiceClient(conn)
+	// Create a client stub
+	client := pb.NewIIDYServiceClient(conn)
 	// This is a little strange. Even though the server migrates the db
 	// at startup, we want to be sure the db is in a known state, so we
 	// wipe it clean and do a fresh migration. This essentially "pulls the
@@ -574,7 +573,7 @@ func testServer(t *testing.T) {
 				t.Errorf("A non-gRPC error occurred: %v", err)
 			}
 		} else {
-				t.Errorf("Error was nil but needed to exist")
+			t.Errorf("Error was nil but needed to exist")
 		}
 	})
 
@@ -598,7 +597,7 @@ func testServer(t *testing.T) {
 				t.Errorf("A non-gRPC error occurred: %v", err)
 			}
 		} else {
-				t.Errorf("Error was nil but needed to exist")
+			t.Errorf("Error was nil but needed to exist")
 		}
 	})
 
@@ -640,7 +639,7 @@ func testServer(t *testing.T) {
 				t.Errorf("A non-gRPC error occurred: %v", err)
 			}
 		} else {
-				t.Errorf("Error was nil but needed to exist")
+			t.Errorf("Error was nil but needed to exist")
 		}
 	})
 
@@ -770,7 +769,6 @@ func testServer(t *testing.T) {
 		}
 	})
 
-
 	t.Run("DeleteOne Starting Fresh", func(t *testing.T) {
 		req := &pb.DeleteListItemRequest{
 			ListItem: &pb.ListItem{
@@ -793,8 +791,8 @@ func testServer(t *testing.T) {
 
 	t.Run("InsertBatch", func(t *testing.T) {
 		req := &pb.AddListItemsRequest{
-				List: "downloads",
-				Items: testFiles,
+			List:  "downloads",
+			Items: testFiles,
 		}
 		resp, err := client.AddListItems(ctx, req)
 		if err != nil {
@@ -809,8 +807,8 @@ func testServer(t *testing.T) {
 
 	t.Run("InsertBatch of zero files", func(t *testing.T) {
 		req := &pb.AddListItemsRequest{
-				List: "downloads",
-				Items: []string{},
+			List:  "downloads",
+			Items: []string{},
 		}
 		_, err := client.AddListItems(ctx, req)
 		if err != nil {
@@ -825,14 +823,14 @@ func testServer(t *testing.T) {
 				t.Errorf("A non-gRPC error occurred: %v", err)
 			}
 		} else {
-				t.Errorf("Error was nil but needed to exist")
+			t.Errorf("Error was nil but needed to exist")
 		}
 	})
 
 	t.Run("DeleteBatch", func(t *testing.T) {
 		req := &pb.DeleteListItemsRequest{
-				List: "downloads",
-				Items: testFiles,
+			List:  "downloads",
+			Items: testFiles,
 		}
 		resp, err := client.DeleteListItems(ctx, req)
 		if err != nil {
@@ -850,8 +848,8 @@ func testServer(t *testing.T) {
 		files := []string{"a", "b", "c", "d", "e", "f", "g"}
 
 		req := &pb.AddListItemsRequest{
-				List: "downloads",
-				Items: files,
+			List:  "downloads",
+			Items: files,
 		}
 		resp, err := client.AddListItems(ctx, req)
 		if err != nil {
@@ -866,8 +864,8 @@ func testServer(t *testing.T) {
 		// Does batch delete work?
 		files2 := []string{"a", "b", "c", "d", "e"}
 		req2 := &pb.DeleteListItemsRequest{
-				List: "downloads",
-				Items: files2,
+			List:  "downloads",
+			Items: files2,
 		}
 		resp2, err := client.DeleteListItems(ctx, req2)
 		if err != nil {
@@ -900,7 +898,7 @@ func testServer(t *testing.T) {
 					t.Errorf("A non-gRPC error occurred: %v", err)
 				}
 			} else {
-					t.Errorf("Error was nil but needed to exist")
+				t.Errorf("Error was nil but needed to exist")
 			}
 		}
 
@@ -926,8 +924,8 @@ func testServer(t *testing.T) {
 		// Now just delete remaining, to clear for next test
 		files3 := []string{"f", "g"}
 		req3 := &pb.DeleteListItemsRequest{
-				List: "downloads",
-				Items: files3,
+			List:  "downloads",
+			Items: files3,
 		}
 		resp3, err := client.DeleteListItems(ctx, req3)
 		if err != nil {
@@ -945,8 +943,8 @@ func testServer(t *testing.T) {
 		files := []string{"a", "b", "c", "d", "e", "f", "g"}
 
 		req := &pb.AddListItemsRequest{
-				List: "downloads",
-				Items: files,
+			List:  "downloads",
+			Items: files,
 		}
 		resp, err := client.AddListItems(ctx, req)
 		if err != nil {
@@ -971,8 +969,8 @@ func testServer(t *testing.T) {
 		// If we batch get 2 items at a time, does everything work?
 		for _, test := range tests {
 			req := &pb.GetListItemsRequest{
-				List: "downloads",
-				Amount: 2,
+				List:      "downloads",
+				Amount:    2,
 				AfterItem: test.afterItem,
 			}
 			resp, err := client.GetListItems(ctx, req)
@@ -987,8 +985,8 @@ func testServer(t *testing.T) {
 
 		// What if we batch get nothing?
 		req2 := &pb.GetListItemsRequest{
-			List: "downloads",
-			Amount: 0,
+			List:      "downloads",
+			Amount:    0,
 			AfterItem: "",
 		}
 		resp2, err := client.GetListItems(ctx, req2)
@@ -1003,7 +1001,7 @@ func testServer(t *testing.T) {
 		// Now just delete remaining, to clear for next test
 		files3 := []string{"a", "b", "c", "d", "e", "f", "g"}
 		req3 := &pb.DeleteListItemsRequest{
-			List: "downloads",
+			List:  "downloads",
 			Items: files3,
 		}
 		resp3, err := client.DeleteListItems(ctx, req3)
@@ -1020,8 +1018,8 @@ func testServer(t *testing.T) {
 		files := []string{"a", "b", "c", "d", "e", "f", "g"}
 
 		req := &pb.AddListItemsRequest{
-				List: "downloads",
-				Items: files,
+			List:  "downloads",
+			Items: files,
 		}
 		resp, err := client.AddListItems(ctx, req)
 		if err != nil {
@@ -1037,8 +1035,8 @@ func testServer(t *testing.T) {
 		files2 := []string{"a", "b", "c", "d", "e"}
 
 		req2 := &pb.IncrementListItemsRequest{
-				List: "downloads",
-				Items: files2,
+			List:  "downloads",
+			Items: files2,
 		}
 		resp2, err := client.IncrementListItems(ctx, req2)
 		if err != nil {
@@ -1049,7 +1047,6 @@ func testServer(t *testing.T) {
 		if got2 != want2 {
 			t.Errorf("Increment was supposed to have been %d but was %d instead", want2, got2)
 		}
-
 
 		// If we look for incremented items, are they incremented?
 		for _, file := range []string{"a", "b", "c", "d", "e"} {
@@ -1091,8 +1088,8 @@ func testServer(t *testing.T) {
 
 		// What if we batch increment nothing?
 		req3 := &pb.IncrementListItemsRequest{
-				List: "downloads",
-				Items: []string{},
+			List:  "downloads",
+			Items: []string{},
 		}
 		_, err = client.IncrementListItems(ctx, req3)
 		if err != nil {
@@ -1107,13 +1104,13 @@ func testServer(t *testing.T) {
 				t.Errorf("A non-gRPC error occurred: %v", err)
 			}
 		} else {
-				t.Errorf("Error was nil but needed to exist")
+			t.Errorf("Error was nil but needed to exist")
 		}
 
 		// Now just delete remaining, to clear for next test
 		files4 := []string{"a", "b", "c", "d", "e", "f", "g"}
 		req4 := &pb.DeleteListItemsRequest{
-			List: "downloads",
+			List:  "downloads",
 			Items: files4,
 		}
 		resp4, err := client.DeleteListItems(ctx, req4)

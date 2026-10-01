@@ -3,7 +3,7 @@ module github.com/manniwood/iidy-protobuf-dates
 go 1.27.0
 
 require (
-	github.com/jackc/pgx/v5 v5.10.0
+	github.com/jackc/pgx/v5 v5.11.0
 	github.com/jackc/tern/v2 v2.4.2
 	github.com/manniwood/pgxtras v1.6.0
 	google.golang.org/grpc v1.83.1

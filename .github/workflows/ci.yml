@@ -52,7 +52,7 @@ jobs:
 
     - name: Run iidy-protobuf-dates
       id: iidyserver
-      run: ./iidy-protobuf
+      run: ./iidy-protobuf-dates
       background: true
 
     - name: Test
